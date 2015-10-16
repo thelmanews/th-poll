@@ -12,7 +12,7 @@
 @homepage http://github.com/thelmanews/thelma-charts/blob/master/th-poll-choices.html
 -->
 
-<polymer-element name="th-poll-choices" extends="th-animated" attributes="pairingKey question">
+<polymer-element name="th-poll-choices" extends="th-animated" attributes="pairingKey question data">
   <template>
     <core-style ref="theme"></core-style>
     <style>
@@ -45,16 +45,14 @@
       <template repeat="{{item in items}}">
       
         <div class="item" style="max-height:{{itemHeight}}; width: {{itemWidth}}; height:{{itemHeight}}; padding: {{itemPadding}}px;">
-          <div class="innerItem"><th-text>{{item.text}}</th-text></div>
+          <div class="innerItem" on-click="{{selectChoice}}" data-text="{{item.text}}"><th-text>{{item.text}}</th-text></div>
         </div>
-        
-        
       </template>
-      <th-poll-pair></th-poll-pair>
+      <th-poll-pair firebaseKey="{{pairingKey}}" data="{{data}}"></th-poll-pair>
   </template>
   <script>
         Polymer('th-poll-choices', {
-          pairingKey: "testing",
+          // pairingKey: "testing",
           question: "Will Donald Trump be president?",
           items: [
             {"text": "yes"},{"text": "no"}, {"text": "no"}, {"text": "no"}
@@ -72,7 +70,7 @@
             // Calculate height and with of items
             self.itemWidth = (100/self.itemsPerRow-0) + "%";
             self.itemHeight = (100/rows-0) + "%";
-
+            this.questionChanged();
           },
           animate: function(){
 
@@ -95,10 +93,40 @@
 
             return hash;
           },
+          selectChoice: function(e, detail, selection){
+            console.log(selection.dataset.text);
+            var selectedText = selection.dataset.text;
+            if (!this.data[selectedText] && this.data[selectedText] !== 0){
+              this.setupData();
+            }
+            this.recordSelection(selectedText);
 
+          },
+          setupData: function(){
+            var self = this;
+            self.data = self.data || {};
+
+            // TODO: 
+            self.items.forEach(function(item){
+              self.data[item.text] = 0;
+            });
+
+          },
+          recordSelection: function(selection){
+            this.data[selection] += 1;
+            // TODO: don't update selection every time the choice is clicked, just once.
+            this.updateData();
+          },
+          updateData: function(){
+            // TODO: update data in firebase
+          },
           // CHANGE OBSERVERS
           questionChanged: function(){
             this.pairingKey = this._createUniqueKey(this.question);
+          },
+          dataChanged: function(){
+            console.log(this.data);
+
           }
           
         });

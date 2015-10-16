@@ -11,7 +11,7 @@
 @homepage http://github.com/thelmanews/thelma-charts/blob/master/th-poll-pair.html
 -->
 
-<polymer-element name="th-poll-pair" extends="th-animated" attributes="pairingKey">
+<polymer-element name="th-poll-pair" extends="th-animated" attributes="firebaseKey data">
   <template>
     <core-style ref="theme"></core-style>
     <style>
@@ -29,11 +29,27 @@
   </template>
   <script>
         Polymer('th-poll-pair', {
-          pairingKey: "testing",
-          _firebaseKey: "",
+          // pairingKey: "testing",
+          // firebaseKey: "",
           _firebaseLocation: "",
           ready: function(){
+            var self = this;
+            self.firebase = self.$.firebase;
 
+            // Set up listeners for data events from firebase
+            self.firebase.addEventListener('th-data-ready', function(response) {
+              // Data found in firebase, so load into component
+              console.log("data received, now loading");
+              self.data = response.detail;
+              console.log(self.data);
+            });
+
+            self.firebase.addEventListener('th-data-error', function(response) {
+              // No data in firebase for that URL, so call parse
+              console.log(response.detail);
+              self.data = {};
+              // console.log(self.data);
+            });
           },
           animate: function(){
 
@@ -41,11 +57,13 @@
           reset: function(){
 
           },
+          firebaseKeyChanged: function(){
+            this.requestData();
+          },
           requestData: function(){
             var self = this;
-            self.$.firebase.load(self.hash); 
-            console.log("data requested");
-          }
+              self.$.firebase.load(self.firebaseKey); 
+            }
         });
 
   </script>
