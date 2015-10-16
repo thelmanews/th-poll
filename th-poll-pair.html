@@ -1,0 +1,52 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../core-ajax/core-ajax.html">
+<link rel="import" href="../th-firebase/th-firebase.html">
+
+<!--
+
+@group Thelma Charts
+@element th-poll-pair
+@blurb Pairs th-poll-choices with a corresponding charting component to chart the results stored in Firebase.
+@status alpha
+@homepage http://github.com/thelmanews/thelma-charts/blob/master/th-poll-pair.html
+-->
+
+<polymer-element name="th-poll-pair" extends="th-animated" attributes="pairingKey">
+  <template>
+    <core-style ref="theme"></core-style>
+    <style>
+      :host {
+        display: inline-block;
+        position: relative;
+        width: 200px;
+        height: 250px;
+      }
+
+      
+
+    </style>
+     <th-firebase id="firebase" directory="polls/" location="https://shining-fire-6376.firebaseio.com/"></th-firebase>
+  </template>
+  <script>
+        Polymer('th-poll-pair', {
+          pairingKey: "testing",
+          _firebaseKey: "",
+          _firebaseLocation: "",
+          ready: function(){
+
+          },
+          animate: function(){
+
+          },
+          reset: function(){
+
+          },
+          requestData: function(){
+            var self = this;
+            self.$.firebase.load(self.hash); 
+            console.log("data requested");
+          }
+        });
+
+  </script>
+</polymer-element>

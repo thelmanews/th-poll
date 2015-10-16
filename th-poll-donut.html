@@ -1,0 +1,46 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<!--
+
+@group Thelma Charts
+@element th-poll-donut
+@blurb Charts the data retreived from th-poll-pair in a donut chart.
+@status alpha
+@homepage http://github.com/thelmanews/thelma-charts/blob/master/th-poll-donut.html
+-->
+
+<polymer-element name="th-poll-donut" extends="th-d3-chart" attributes="pairingKey">
+  <template>
+    <core-style ref="theme"></core-style>
+    <style>
+      :host {
+        display: inline-block;
+        position: relative;
+        width: 200px;
+        height: 250px;
+      }
+
+      
+
+    </style>
+     <div>donut</div>
+     <th-poll-pair></th-poll-pair>
+  </template>
+  <script>
+        Polymer('th-poll-donut', {
+          // pairingKey: "testing",
+          _firebaseKey: "",
+          _firebaseLocation: "",
+          ready: function(){
+
+          },
+          animate: function(){
+
+          },
+          reset: function(){
+
+          }
+        });
+
+  </script>
+</polymer-element>

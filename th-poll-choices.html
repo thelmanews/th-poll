@@ -1,0 +1,107 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../th-flipboard/th-flipboard.html">
+<link rel="import" href="../th-animated/th-animated.html">
+<link rel="import" href="th-poll-pair.html">
+
+<!--
+
+@group Thelma Charts
+@element th-poll-choices
+@blurb Element providing a set of choices, with the selection being saved to Firebase.
+@status alpha
+@homepage http://github.com/thelmanews/thelma-charts/blob/master/th-poll-choices.html
+-->
+
+<polymer-element name="th-poll-choices" extends="th-animated" attributes="pairingKey question">
+  <template>
+    <core-style ref="theme"></core-style>
+    <style>
+      :host {
+        display: inline-block;
+        position: relative;
+        width: 200px;
+        height: 250px;
+      }
+
+      .item {
+        display: inline-block; 
+        float: left; 
+        overflow:hidden;        
+        box-sizing: border-box;
+      }
+
+      .innerItem {
+        width: 100%;
+        height: 100%;
+        /*background-color:green;*/
+        /*border: 1px solid white;*/
+        box-sizing: border-box;
+        text-align: center;
+      }
+
+
+
+    </style>
+      <template repeat="{{item in items}}">
+      
+        <div class="item" style="max-height:{{itemHeight}}; width: {{itemWidth}}; height:{{itemHeight}}; padding: {{itemPadding}}px;">
+          <div class="innerItem"><th-text>{{item.text}}</th-text></div>
+        </div>
+        
+        
+      </template>
+      <th-poll-pair></th-poll-pair>
+  </template>
+  <script>
+        Polymer('th-poll-choices', {
+          pairingKey: "testing",
+          question: "Will Donald Trump be president?",
+          items: [
+            {"text": "yes"},{"text": "no"}, {"text": "no"}, {"text": "no"}
+          ],
+          itemsPerRow: 2,
+          itemPadding: 0,
+
+          
+          // ELEMENT LIFECYCLE
+          ready: function(){
+            var self = this,
+            rows = Math.ceil(self.items.length / self.itemsPerRow);
+            self.margin = 0;
+
+            // Calculate height and with of items
+            self.itemWidth = (100/self.itemsPerRow-0) + "%";
+            self.itemHeight = (100/rows-0) + "%";
+
+          },
+          animate: function(){
+
+          },
+          reset: function(){
+
+          },
+
+
+          // PRIVATE METHODS
+          _createUniqueKey: function(str){
+            var hash, i, chr, len;
+
+            if (str.length == 0) return str;
+            for (i = 0, len = str.length; i < len; i++) {
+              chr   = str.charCodeAt(i);
+              hash  = ((hash << 5) - hash) + chr;
+              hash |= 0; // Convert to 32bit integer
+            }
+
+            return hash;
+          },
+
+          // CHANGE OBSERVERS
+          questionChanged: function(){
+            this.pairingKey = this._createUniqueKey(this.question);
+          }
+          
+        });
+
+  </script>
+</polymer-element>
