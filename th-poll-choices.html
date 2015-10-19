@@ -12,7 +12,7 @@
 @homepage http://github.com/thelmanews/thelma-charts/blob/master/th-poll-choices.html
 -->
 
-<polymer-element name="th-poll-choices" extends="th-animated" attributes="pairingKey question data">
+<polymer-element name="th-poll-choices" extends="th-animated" attributes="pairingKey question data fillColor textColor">
   <template>
     <core-style ref="theme"></core-style>
     <style>
@@ -33,10 +33,13 @@
       .innerItem {
         width: 100%;
         height: 100%;
-        /*background-color:green;*/
-        /*border: 1px solid white;*/
         box-sizing: border-box;
         text-align: center;
+        -webkit-transition: background 0.7s linear;
+        -moz-transition: background 0.7s linear;
+        -ms-transition: background 0.7s linear;
+        -o-transition: background 0.7s linear;
+        transition: background 0.7s linear;
       }
 
 
@@ -45,7 +48,7 @@
       <template repeat="{{item in items}}">
       
         <div class="item" style="max-height:{{itemHeight}}; width: {{itemWidth}}; height:{{itemHeight}}; padding: {{itemPadding}}px;">
-          <div class="innerItem" on-click="{{selectChoice}}" data-text="{{item.text}}"><th-text>{{item.text}}</th-text></div>
+          <div class="innerItem" on-click="{{selectChoice}}" data-text="{{item.text}}" style="border: 2px solid {{textColor}};"><th-text color="{{textColor}}" align="center">{{item.text}}</th-text></div>
         </div>
       </template>
       <th-poll-pair firebaseKey="{{pairingKey}}" data="{{data}}"></th-poll-pair>
@@ -55,12 +58,13 @@
           // pairingKey: "testing",
           question: "Will Donald Trump be president?",
           items: [
-            {"text": "yes"},{"text": "no"}, {"text": "no"}, {"text": "no"}
+            {"text": "yes"},{"text": "no"}
           ],
           itemsPerRow: 2,
-          itemPadding: 0,
+          itemPadding: 5,
+          textColor: 'white',
+          fillColor: 'black',
 
-          
           // ELEMENT LIFECYCLE
           ready: function(){
             var self = this,
@@ -94,13 +98,21 @@
             return hash;
           },
           selectChoice: function(e, detail, selection){
-            console.log(selection.dataset.text);
             var selectedText = selection.dataset.text;
+
             if (!this.data[selectedText] && this.data[selectedText] !== 0){
               this.setupData();
             }
             this.recordSelection(selectedText);
+            this.deselectChoices();
+            selection.style.background = this.fillColor; 
 
+          },
+          deselectChoices: function(){
+            var choices = this.shadowRoot.querySelectorAll('.innerItem');
+            [].forEach.call(choices, function(choice){
+              choice.style.background = '';
+            });
           },
           setupData: function(){
             var self = this;
