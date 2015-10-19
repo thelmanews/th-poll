@@ -64,7 +64,7 @@
           itemPadding: 5,
           textColor: 'white',
           fillColor: 'black',
-
+          _currentSelection: '',
           // ELEMENT LIFECYCLE
           ready: function(){
             var self = this,
@@ -98,12 +98,13 @@
             return hash;
           },
           selectChoice: function(e, detail, selection){
-            var selectedText = selection.dataset.text;
+            this._previousSelection = this._currentSelection;
+            this._currentSelection = selection.dataset.text;
 
-            if (!this.data[selectedText] && this.data[selectedText] !== 0){
+            if (!this.data[this._currentSelection] && this.data[this._currentSelection] !== 0){
               this.setupData();
             }
-            this.recordSelection(selectedText);
+            this.recordSelection(this._currentSelection, this._previousSelection);
             this.deselectChoices();
             selection.style.background = this.fillColor; 
 
@@ -124,12 +125,18 @@
             });
 
           },
-          recordSelection: function(selection){
+          recordSelection: function(selection, previousSelection){
             this.data[selection] += 1;
+            
+            if (previousSelection){
+              this.data[previousSelection] -= 1;
+            }
             // TODO: don't update selection every time the choice is clicked, just once.
             this.updateData();
           },
           updateData: function(){
+            console.log("CURRENT DATA");
+            console.log(this.data);
             // TODO: update data in firebase
           },
           // CHANGE OBSERVERS
@@ -137,7 +144,7 @@
             this.pairingKey = this._createUniqueKey(this.question);
           },
           dataChanged: function(){
-            console.log(this.data);
+            // console.log(this.data);
 
           }
           

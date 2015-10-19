@@ -1,6 +1,6 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../core-ajax/core-ajax.html">
-<link rel="import" href="../th-firebase/th-firebase.html">
+<link rel="import" href="../firebase-element/firebase-element.html">
 
 <!--
 
@@ -22,49 +22,32 @@
         height: 250px;
       }
 
-      
-
+    
     </style>
-     <th-firebase id="firebase" directory="polls/" location="https://shining-fire-6376.firebaseio.com/"></th-firebase>
+     <firebase-element id="firebase"  data="{{data}}"></firebase-element>
   </template>
   <script>
-        Polymer('th-poll-pair', {
-          // pairingKey: "testing",
-          // firebaseKey: "",
-          _firebaseLocation: "",
-          ready: function(){
-            var self = this;
-            self.firebase = self.$.firebase;
+    Polymer('th-poll-pair', {
+      // pairingKey: "testing",
+      // firebaseKey: "",
+      _firebaseLocation: "https://shining-fire-6376.firebaseio.com/polls/",
+      ready: function(){
+        var self = this;
+        self.firebase = self.$.firebase;
+      
+      },
+      animate: function(){
 
-            // Set up listeners for data events from firebase
-            self.firebase.addEventListener('th-data-ready', function(response) {
-              // Data found in firebase, so load into component
-              console.log("data received, now loading");
-              self.data = response.detail;
-              console.log(self.data);
-            });
+      },
+      reset: function(){
 
-            self.firebase.addEventListener('th-data-error', function(response) {
-              // No data in firebase for that URL, so call parse
-              console.log(response.detail);
-              self.data = {};
-              // console.log(self.data);
-            });
-          },
-          animate: function(){
-
-          },
-          reset: function(){
-
-          },
-          firebaseKeyChanged: function(){
-            this.requestData();
-          },
-          requestData: function(){
-            var self = this;
-              self.$.firebase.load(self.firebaseKey); 
-            }
-        });
+      },
+      firebaseKeyChanged: function(){
+        if (this.firebaseKey){
+          this.firebase.location = this._firebaseLocation + this.firebaseKey;
+        }
+      }
+    });
 
   </script>
 </polymer-element>

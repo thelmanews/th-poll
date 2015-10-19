@@ -1,4 +1,5 @@
 <link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../th-donut-chart/th-donut-chart.html">
 
 <!--
 
@@ -9,7 +10,7 @@
 @homepage http://github.com/thelmanews/thelma-charts/blob/master/th-poll-donut.html
 -->
 
-<polymer-element name="th-poll-donut" extends="th-d3-chart" attributes="pairingKey">
+<polymer-element name="th-poll-donut" extends="th-d3-chart" attributes="pairingKey question">
   <template>
     <core-style ref="theme"></core-style>
     <style>
@@ -23,22 +24,47 @@
       
 
     </style>
-     <div>donut</div>
-     <th-poll-pair></th-poll-pair>
+     <th-poll-pair firebaseKey="{{pairingKey}}" data="{{data}}"></th-poll-pair>
+     <th-donut-chart chartData="{{chartData}}"></th-donut-chart>
+
   </template>
   <script>
         Polymer('th-poll-donut', {
           // pairingKey: "testing",
+          question: "Will Donald Trump be president?",
           _firebaseKey: "",
           _firebaseLocation: "",
           ready: function(){
-
+            this.questionChanged();
           },
           animate: function(){
 
           },
           reset: function(){
 
+          },
+
+          // PRIVATE METHODS
+          _createUniqueKey: function(str){
+            var hash, i, chr, len;
+
+            if (str.length == 0) return str;
+            for (i = 0, len = str.length; i < len; i++) {
+              chr   = str.charCodeAt(i);
+              hash  = ((hash << 5) - hash) + chr;
+              hash |= 0; // Convert to 32bit integer
+            }
+
+            return hash;
+          },
+
+
+          questionChanged: function(){
+            this.pairingKey = this._createUniqueKey(this.question);
+          },
+          dataChanged: function(){
+            console.log("DATA FROM DONUT");
+            console.log(this.data);
           }
         });
 
