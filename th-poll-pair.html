@@ -11,19 +11,9 @@
 @homepage http://github.com/thelmanews/thelma-charts/blob/master/th-poll-pair.html
 -->
 
-<polymer-element name="th-poll-pair" extends="th-animated" attributes="firebaseKey data">
+<polymer-element name="th-poll-pair" attributes="firebaseKey data">
   <template>
     <core-style ref="theme"></core-style>
-    <style>
-      :host {
-        display: inline-block;
-        position: relative;
-        width: 200px;
-        height: 250px;
-      }
-
-    
-    </style>
      <firebase-element id="firebase"  data="{{data}}"></firebase-element>
   </template>
   <script>

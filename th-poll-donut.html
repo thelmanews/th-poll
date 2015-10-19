@@ -26,6 +26,7 @@
     </style>
      <th-poll-pair firebaseKey="{{pairingKey}}" data="{{data}}"></th-poll-pair>
      <th-donut-chart chartData="{{chartData}}"></th-donut-chart>
+     <svg id="chart"></svg>
 
   </template>
   <script>
@@ -35,7 +36,11 @@
           _firebaseKey: "",
           _firebaseLocation: "",
           ready: function(){
+            var self = this;
             this.questionChanged();
+            this.addEventListener('data-change', function(){
+              self.dataChanged();
+            })
           },
           animate: function(){
 
@@ -64,7 +69,21 @@
           },
           dataChanged: function(){
             console.log("DATA FROM DONUT");
-            console.log(this.data);
+            this.setupChartdata();
+          },
+          setupChartdata: function(){
+            var self = this;
+            var total = 0;
+            for (var item in this.data){
+              total += this.data[item];
+            };
+            var dataKeys = Object.keys(this.data);
+            this.chartData = dataKeys.map(function(key){
+              var value = self.data[key];
+              return { value: (value/total)*100};
+            });
+            console.log(this.chartData);
+
           }
         });
 
