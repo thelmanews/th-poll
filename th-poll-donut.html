@@ -12,23 +12,23 @@
 @homepage http://github.com/thelmanews/thelma-charts/blob/master/th-poll-donut.html
 -->
 
-<polymer-element name="th-poll-donut" extends="th-d3-chart" attributes="pairingKey question">
+<polymer-element name="th-poll-donut" extends="th-d3-chart" attributes="pairingKey question color1 color2">
   <template>
     <core-style ref="theme"></core-style>
     <style>
       :host {
         display: inline-block;
         position: relative;
-        width: 200px;
-        height: 250px;
+        width: 150px;
+        height: 150px;
+        border: 1px solid red;
       }
 
-      
-
     </style>
-     <th-poll-pair firebaseKey="{{pairingKey}}" data="{{data}}"></th-poll-pair>
-     <th-donut-chart chartData="{{chartData}}"></th-donut-chart>
-     <svg id="chart"></svg>
+      
+     <!-- <th-donut-chart chartData="{{chartData}}"></th-donut-chart> -->
+      <svg id="chart"></svg>
+      <th-poll-pair firebaseKey="{{pairingKey}}" data="{{data}}"></th-poll-pair>
 
   </template>
   <script>
@@ -37,15 +37,122 @@
           question: "Will Donald Trump be president?",
           _firebaseKey: "",
           _firebaseLocation: "",
-          ready: function(){
+          
+          init: function(){
             var self = this;
             this.questionChanged();
             this.addEventListener('data-change', function(){
               self.dataChanged();
-            })
+            });
+            this._setupDimensions();
+            this._setupElements();
+            self._prevProgress = 0;
+
+          },
+          _setupElements: function(){
+            var self = this;
+            
+            // Arc svg
+            self.arc = d3.svg.arc()
+              .startAngle(0)
+              .innerRadius(self.dims.innerRadius)
+              .outerRadius(self.dims.outerRadius);
+
+            // Donut container
+            var svg = d3.select(self.$.chart);
+            var chart = svg.attr("width", self.width)
+                .attr("height", self.height)
+                .append("g")
+                .attr("transform", "translate(" +(self.width / 2) + "," + (self.dims.labelSize + self.dims.outerRadius) + ")");
+                
+            // Donut group for paths
+            var meter = chart.append("g")
+                .attr("class", "progress-meter");
+            
+            // Donut background
+            self.background = meter.append("path")
+                .attr("class", "fill-foreground2")
+                .attr("d", self.arc.endAngle(2 * Math.PI))
+                .style("stroke", this.color2)
+                .style("fill", this.color2);
+            
+            // Donut foreground
+            self.foreground = meter.append("path")
+                .attr("class", "data0")
+                .style("stroke", this.color1)
+                .style("fill", this.color1);
+                // .style("stroke", self.chartData[0].color);
+                // .attr("filter", "url(#dropshadow)");
+            
+            // Data labels
+            self.topLabel = svg.append("text")
+              .attr('class','percent data0 label no-stroke')
+              .style('font-size', self.dims.labelSize*0.5 + 'px')
+              .attr("text-anchor", "middle")
+              .attr("transform", "translate(" +(self.width / 2 ) + "," + self.dims.labelSize/2 + ")")
+              .style("fill", this.color1)
+              // .style("stroke", this.color1)
+              .text('aaldkj');
+
+            self.bottomLabel = svg.append("text")
+              .attr('class','percent fill-foreground2 label no-stroke')
+              .style('font-size', self.dims.labelSize*0.5 + 'px')
+              .attr("text-anchor", "middle")
+              .attr("transform", "translate(" +(self.width / 2 ) + "," + (self.dims.donutSize + self.dims.labelSize + self.dims.labelSize/2) + ")")
+              .style("fill", this.color2)
+              // .style("stroke", this.color2)
+              .text('bottom label');                            
+
+          },
+          _setupDimensions: function(){
+            var self = this;
+            self.width = self.computeWidth();
+            self.height = self.computeHeight();
+
+            self.dims = {
+              minLabelHeight: 20,
+              padding: 1
+            };
+
+            self.dims.labelSize = Math.min(60, Math.max(self.dims.minLabelHeight, Math.min(self.height * 0.12, self.width * 0.12)));
+            self.dims.donutSize = Math.min(self.width, self.height, (self.height - 2 * self.dims.labelSize));
+            self.dims.outerRadius = (self.dims.donutSize) * 0.49 - (self.dims.padding*2);
+            self.dims.innerRadius = (self.dims.donutSize) * 0.32;
+            
+
+
           },
           animate: function(){
+            var self = this;
+            if (!self.chartData){
+              self.setupChartdata();
+            }
 
+            self.animationDelay = 500;
+
+            var progress = self.chartData[0].value;
+            // console.log(progress);
+
+            if(self._prevProgress == progress) {  
+              self._prevProgress = 0;
+            }
+// console.log(self._prevProgress);
+            var total = 100;
+            var i = d3.interpolate(self._prevProgress/total, progress/total);//d3.event.loaded / total);
+
+            self.foreground.transition().delay(self.animationDelay/2).duration(self.animationDelay).tween("progress", function() {
+              return function(t) {
+                var progress1 = i(t);
+                console.log(progress1);
+                self.foreground.attr("d", self.arc.endAngle(Math.PI*2 * progress1));
+                // self.text.text((progress1*100).toFixed(self.decimalPlaces)+"%");
+              };
+            }).each("end",function() {
+              self.fire('th-animationend',{ element: self});  // is self too much to expose?
+
+            });
+
+            self._prevProgress = progress; 
           },
           reset: function(){
 
@@ -71,21 +178,25 @@
           },
           dataChanged: function(){
             console.log("DATA FROM DONUT");
-            this.setupChartdata();
+            if (this.data && Object.keys(this.data).length){
+              this.setupChartdata();
+            }
           },
           setupChartdata: function(){
             var self = this;
             var total = 0;
+            console.log(this.data);
             for (var item in this.data){
               total += this.data[item];
             };
             var dataKeys = Object.keys(this.data);
-            this.chartData = dataKeys.map(function(key){
+            this.chartData = dataKeys.map(function(key, i){
               var value = self.data[key];
-              return { value: (value/total)*100};
+              return { value: (value/total)*100, label: dataKeys[i]};
             });
-            console.log(this.chartData);
+            self.decimalPlaces  = self.getDecimalPlaces(self.chartData[0].value);
 
+            console.log(self.chartData);
           }
         });
 

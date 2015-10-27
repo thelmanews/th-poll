@@ -101,7 +101,7 @@
             this._previousSelection = this._currentSelection;
             this._currentSelection = selection.dataset.text;
 
-            if (!this.data[this._currentSelection] && this.data[this._currentSelection] !== 0){
+            if (!this.data || (!this.data[this._currentSelection] && this.data[this._currentSelection] !== 0)){
               this.setupData();
             }
             this.recordSelection(this._currentSelection, this._previousSelection);
@@ -129,7 +129,7 @@
             this.data[selection] += 1;
             
             if (previousSelection){
-              this.data[previousSelection] -= 1;
+              this.data[previousSelection] = Math.max(this.data[previousSelection]-1, 0);
             }
             // TODO: don't update selection every time the choice is clicked, just once.
             this.updateData();
