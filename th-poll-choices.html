@@ -12,7 +12,7 @@
 @homepage http://github.com/thelmanews/thelma-charts/blob/master/th-poll-choices.html
 -->
 
-<polymer-element name="th-poll-choices" extends="th-animated" attributes="items question data fillColor textColor itemPadding itemsPerRow">
+<polymer-element name="th-poll-choices" extends="th-animated" attributes="items question pollData fillColor textColor itemPadding itemsPerRow">
   <template>
     <core-style ref="theme"></core-style>
     <style>
@@ -45,20 +45,20 @@
 
 
     </style>
-      <template repeat="{{item in items}}">
+      <template repeat="{{item, i in items}}">
       
         <div class="item" style="max-height:{{itemHeight}}; width: {{itemWidth}}; height:{{itemHeight}}; padding: {{itemPadding}}px;">
-          <div class="innerItem" on-click="{{selectChoice}}" data-text="{{item.text}}" style="border: 2px solid {{textColor}};"><th-text color="{{textColor}}" align="center">{{item.text}}</th-text></div>
+          <div class="innerItem" on-click="{{selectChoice}}" data-index="{{i}}" data-text="{{item.text}}" style="border: 2px solid {{textColor}};"><th-text color="{{textColor}}" align="center">{{item.text}}</th-text></div>
         </div>
       </template>
-      <th-poll-pair firebaseKey="{{pairingKey}}" data="{{data}}"></th-poll-pair>
+      <th-poll-pair id="firebase" firebaseKey="{{pairingKey}}" data="{{pollData}}"></th-poll-pair>
   </template>
   <script>
         Polymer('th-poll-choices', {
           // pairingKey: "testing",
           question: "Will Donald Trump be president?",
           items: [
-            {"text": "yes"},{"text": "no"}
+            {"text": "no"}, {"text": "yes"}
           ],
           itemsPerRow: 2,
           itemPadding: 5,
@@ -99,9 +99,9 @@
           },
           selectChoice: function(e, detail, selection){
             this._previousSelection = this._currentSelection;
-            this._currentSelection = selection.dataset.text;
+            this._currentSelection = parseInt(selection.dataset.index);
 
-            if (!this.data || (!this.data[this._currentSelection] && this.data[this._currentSelection] !== 0)){
+            if (!this.pollData || !this.pollData.data || (!this.pollData.data[this._currentSelection] && this.pollData.data[this._currentSelection] !== 0)){
               this.setupData();
             }
             this.recordSelection(this._currentSelection, this._previousSelection);
@@ -117,26 +117,34 @@
           },
           setupData: function(){
             var self = this;
-            self.data = self.data || {};
-
-            // TODO: 
-            self.items.forEach(function(item){
-              self.data[item.text] = 0;
+            self.pollData = {
+              data: self.items,
+              total: 0
+            };
+            // // TODO: 
+            self.pollData.data.forEach(function(item){
+              item._votes = 0;
             });
+
+            console.log("!*!*");
+            console.log(this.pollData);
 
           },
           recordSelection: function(selection, previousSelection){
-            this.data[selection] += 1;
+            this.pollData.data[selection]._votes += 1;
+            this.pollData.total += 1;
             
-            if (previousSelection){
-              this.data[previousSelection] = Math.max(this.data[previousSelection]-1, 0);
+            if (previousSelection || previousSelection === 0){
+              this.pollData.data[previousSelection]._votes = Math.max(this.pollData.data[previousSelection]._votes - 1, 0);
+              this.pollData.total = Math.max(this.pollData.total - 1, 0);
             }
             // TODO: don't update selection every time the choice is clicked, just once.
             this.updateData();
           },
           updateData: function(){
             console.log("CURRENT DATA");
-            console.log(this.data);
+            console.log(this.pollData);
+            this.$.firebase.dataChanged();
             // TODO: update data in firebase
           },
           // CHANGE OBSERVERS
@@ -144,7 +152,7 @@
             this.pairingKey = this._createUniqueKey(this.question);
           },
           dataChanged: function(){
-            // console.log(this.data);
+            // console.log(this.pollData);
 
           }
           

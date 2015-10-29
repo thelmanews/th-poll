@@ -36,6 +36,11 @@
         if (this.firebaseKey){
           this.firebase.location = this._firebaseLocation + this.firebaseKey;
         }
+      },
+      dataChanged: function(){
+        console.log(this.data);
+
+        this.$.firebase.commit();
       }
     });
 

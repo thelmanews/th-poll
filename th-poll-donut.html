@@ -28,7 +28,7 @@
       
      <!-- <th-donut-chart chartData="{{chartData}}"></th-donut-chart> -->
       <svg id="chart"></svg>
-      <th-poll-pair firebaseKey="{{pairingKey}}" data="{{data}}"></th-poll-pair>
+      <th-poll-pair firebaseKey="{{pairingKey}}" data="{{pollData}}"></th-poll-pair>
 
   </template>
   <script>
@@ -37,7 +37,7 @@
           question: "Will Donald Trump be president?",
           _firebaseKey: "",
           _firebaseLocation: "",
-          
+          // chartData: undefined,
           init: function(){
             var self = this;
             this.questionChanged();
@@ -46,7 +46,7 @@
             });
             this._setupDimensions();
             this._setupElements();
-            self._prevProgress = 0;
+            
 
           },
           _setupElements: function(){
@@ -108,7 +108,7 @@
             var self = this;
             self.width = self.computeWidth();
             self.height = self.computeHeight();
-
+            self._prevProgress = 0;
             self.dims = {
               minLabelHeight: 20,
               padding: 1
@@ -124,13 +124,19 @@
           },
           animate: function(){
             var self = this;
-            if (!self.chartData){
+            if (!self.pollData || !self.pollData.data){
               self.setupChartdata();
             }
-
+            if (self.pollData && self.pollData.data){
             self.animationDelay = 500;
 
-            var progress = self.chartData[0].value;
+            self.topLabel
+              .text(self.pollData.data[0].text + ' ' + self.pollData.data[0]._percent + '%');   
+
+            self.bottomLabel
+              .text(self.pollData.data[1].text + ' ' + self.pollData.data[1]._percent + '%');                           
+
+            var progress = self.pollData.data[0]._percent;
             // console.log(progress);
 
             if(self._prevProgress == progress) {  
@@ -143,9 +149,9 @@
             self.foreground.transition().delay(self.animationDelay/2).duration(self.animationDelay).tween("progress", function() {
               return function(t) {
                 var progress1 = i(t);
-                console.log(progress1);
+                // console.log(progress1);
                 self.foreground.attr("d", self.arc.endAngle(Math.PI*2 * progress1));
-                // self.text.text((progress1*100).toFixed(self.decimalPlaces)+"%");
+                
               };
             }).each("end",function() {
               self.fire('th-animationend',{ element: self});  // is self too much to expose?
@@ -153,11 +159,12 @@
             });
 
             self._prevProgress = progress; 
+            }
           },
           reset: function(){
 
           },
-
+          
           // PRIVATE METHODS
           _createUniqueKey: function(str){
             var hash, i, chr, len;
@@ -177,26 +184,25 @@
             this.pairingKey = this._createUniqueKey(this.question);
           },
           dataChanged: function(){
-            console.log("DATA FROM DONUT");
-            if (this.data && Object.keys(this.data).length){
-              this.setupChartdata();
-            }
+            console.log("data changed in donut");
+            if (this.pollData && this.pollData.data && this.pollData.data.length){
+                this.updateChartdata();
+                this.animate();
+            } 
           },
-          setupChartdata: function(){
+          updateChartdata: function(){
             var self = this;
-            var total = 0;
-            console.log(this.data);
-            for (var item in this.data){
-              total += this.data[item];
-            };
-            var dataKeys = Object.keys(this.data);
-            this.chartData = dataKeys.map(function(key, i){
-              var value = self.data[key];
-              return { value: (value/total)*100, label: dataKeys[i]};
-            });
-            self.decimalPlaces  = self.getDecimalPlaces(self.chartData[0].value);
 
-            console.log(self.chartData);
+            console.log('setup chart data');
+            if (this.pollData){
+            
+              this.pollData.data.forEach(function(obj, i){
+                obj._percent = parseInt((obj._votes/self.pollData.total)*100);
+              })
+              
+            }
+
+            console.log(self.pollData);
           }
         });
 
