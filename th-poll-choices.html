@@ -76,7 +76,7 @@
       <template repeat="{{item, i in items}}">
       
         <div class="item" style="max-height:{{itemHeight}}; width: {{itemWidth}}; height:{{itemHeight}}; padding: {{itemPadding}}px;">
-          <div class="innerItem" on-click="{{selectChoice}}" data-index="{{i}}" data-text="{{item.label}}" style="border: 2px solid {{textColor}};"><th-text color="{{textColor}}" align="center">{{item.label}}</th-text></div>
+          <div class="innerItem" on-click="{{_selectChoice}}" data-index="{{i}}" data-text="{{item.label}}" style="border: 2px solid {{textColor}};"><th-text color="{{textColor}}" align="center">{{item.label}}</th-text></div>
         </div>
       </template>
       </div>
@@ -87,7 +87,7 @@
           // pairingKey: "testing",
           question: "Will Donald Trump win the 2016 Republican nomination?",
           items: [
-            {"label": "No"}, {"label": "Yes"}
+            {"label": "Yes"}, {"label": "No"}
           ],
           itemsPerRow: 2,
           itemPadding: 0,
@@ -129,27 +129,28 @@
 
             return hash;
           },
-          selectChoice: function(e, detail, selection){
+          _selectChoice: function(e, detail, selection){
             this._previousSelection = this._currentSelection;
             this._currentSelection = parseInt(selection.dataset.index);
 
             if (!this.pollData || !this.pollData.data || (!this.pollData.data[this._currentSelection] && this.pollData.data[this._currentSelection] !== 0)){
-              this.setupData();
+              this._setupData();
             }
-      
-            this.recordSelection(this._currentSelection, this._previousSelection);
-            this.deselectChoices();
+
+            this._recordSelection(this._currentSelection, this._previousSelection);
+            this._deselectChoices();
             selection.style.background = this.fillColor; 
 
           },
-          deselectChoices: function(){
+          _deselectChoices: function(){
             var choices = this.shadowRoot.querySelectorAll('.innerItem');
             [].forEach.call(choices, function(choice){
               choice.style.background = '';
             });
           },
-          setupData: function(){
+          _setupData: function(){
             var self = this;
+            
             self.pollData = {
               data: self.items,
               total: 0
@@ -158,11 +159,12 @@
             self.pollData.data.forEach(function(item){
               item._votes = 0;
             });
-
-
-
           },
-          recordSelection: function(selection, previousSelection){
+          _recordSelection: function(selection, previousSelection){
+            if (this.pollData.data[selection].label !== this.items[selection].label){
+              this._setupData();
+            }
+
             this.pollData.data[selection]._votes += 1;
             this.pollData.total += 1;
             
@@ -170,13 +172,14 @@
               this.pollData.data[previousSelection]._votes = Math.max(this.pollData.data[previousSelection]._votes - 1, 0);
               this.pollData.total = Math.max(this.pollData.total - 1, 0);
             }
-            this.updateData();
-          },
-          updateData: function(){
-            console.log("CURRENT DATA");
             
+            this._updateData();
+          },
+          _updateData: function(){
+            console.log("Update data in firebase");
             this.$.firebase.dataChanged();
           },
+
           // CHANGE OBSERVERS
           questionChanged: function(){
             this.pairingKey = this._createUniqueKey(this.question);

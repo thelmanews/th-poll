@@ -179,8 +179,12 @@
             var self = this;
             if (this.pollData){            
               this.pollData.data.forEach(function(obj, i){
+                console.log(obj.label);
+                console.log(obj._votes);
+                console.log(self.pollData.total);
                 obj._percent = parseInt((obj._votes/self.pollData.total)*100);
               })
+
               
             }
           }
