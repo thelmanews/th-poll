@@ -29,6 +29,29 @@
         overflow:hidden;        
         box-sizing: border-box;
       }
+      
+      #container {
+        -webkit-transition: opacity 0.4s ease;  
+        -moz-transition:    opacity 0.4s ease;
+        -ms-transition:     opacity 0.4s ease; 
+        -o-transition:      opacity 0.4s ease;
+        width: 100%;
+        height: 100%;
+      }
+
+      .fadeIn {
+        opacity: 1;
+        -webkit-opacity: 1;
+        -moz-opacity: 1;
+        filter:alpha(opacity=100);
+      }
+
+      .fadeOut {
+        opacity: 0;
+        -webkit-opacity: 0;
+        -moz-opacity: 0;
+        filter:alpha(opacity=0);
+      }
 
       .innerItem {
         width: 100%;
@@ -42,26 +65,26 @@
         transition: background 0.7s linear;
       }
 
-
-
     </style>
+      <div id="container" class="fadeOut">
       <template repeat="{{item, i in items}}">
       
         <div class="item" style="max-height:{{itemHeight}}; width: {{itemWidth}}; height:{{itemHeight}}; padding: {{itemPadding}}px;">
           <div class="innerItem" on-click="{{selectChoice}}" data-index="{{i}}" data-text="{{item.text}}" style="border: 2px solid {{textColor}};"><th-text color="{{textColor}}" align="center">{{item.text}}</th-text></div>
         </div>
       </template>
+      </div>
       <th-poll-pair id="firebase" firebaseKey="{{pairingKey}}" data="{{pollData}}"></th-poll-pair>
   </template>
   <script>
         Polymer('th-poll-choices', {
           // pairingKey: "testing",
-          question: "Will Donald Trump be president?",
+          question: "Will Donald Trump win the 2016 Republican nomination?",
           items: [
-            {"text": "no"}, {"text": "yes"}
+            {"text": "No"}, {"text": "Yes"}
           ],
           itemsPerRow: 2,
-          itemPadding: 5,
+          itemPadding: 0,
           textColor: 'white',
           fillColor: 'black',
           _currentSelection: '',
@@ -77,12 +100,15 @@
             this.questionChanged();
           },
           animate: function(){
-
+            // Fade in choices
+            this.$.container.classList.remove('fadeOut');
+            this.$.container.classList.add('fadeIn');
           },
           reset: function(){
-
+            // Fade out choices
+            this.$.container.classList.remove('fadeIn');
+            this.$.container.classList.add('fadeOut');
           },
-
 
           // PRIVATE METHODS
           _createUniqueKey: function(str){
@@ -121,13 +147,12 @@
               data: self.items,
               total: 0
             };
-            // // TODO: 
+
             self.pollData.data.forEach(function(item){
               item._votes = 0;
             });
 
-            console.log("!*!*");
-            console.log(this.pollData);
+
 
           },
           recordSelection: function(selection, previousSelection){
@@ -138,22 +163,16 @@
               this.pollData.data[previousSelection]._votes = Math.max(this.pollData.data[previousSelection]._votes - 1, 0);
               this.pollData.total = Math.max(this.pollData.total - 1, 0);
             }
-            // TODO: don't update selection every time the choice is clicked, just once.
             this.updateData();
           },
           updateData: function(){
             console.log("CURRENT DATA");
-            console.log(this.pollData);
+            
             this.$.firebase.dataChanged();
-            // TODO: update data in firebase
           },
           // CHANGE OBSERVERS
           questionChanged: function(){
             this.pairingKey = this._createUniqueKey(this.question);
-          },
-          dataChanged: function(){
-            // console.log(this.pollData);
-
           }
           
         });

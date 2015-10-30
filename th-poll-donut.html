@@ -12,32 +12,25 @@
 @homepage http://github.com/thelmanews/thelma-charts/blob/master/th-poll-donut.html
 -->
 
-<polymer-element name="th-poll-donut" extends="th-d3-chart" attributes="pairingKey question color1 color2">
+<polymer-element name="th-poll-donut" extends="th-d3-chart" attributes=" question color1 color2">
   <template>
     <core-style ref="theme"></core-style>
     <style>
       :host {
         display: inline-block;
         position: relative;
-        width: 150px;
-        height: 150px;
-        border: 1px solid red;
+        width: 250px;
+        height: 250px;
       }
-
     </style>
-      
-     <!-- <th-donut-chart chartData="{{chartData}}"></th-donut-chart> -->
+
       <svg id="chart"></svg>
-      <th-poll-pair firebaseKey="{{pairingKey}}" data="{{pollData}}"></th-poll-pair>
+      <th-poll-pair firebaseKey="{{_pairingKey}}" data="{{pollData}}"></th-poll-pair>
 
   </template>
   <script>
         Polymer('th-poll-donut', {
-          // pairingKey: "testing",
-          question: "Will Donald Trump be president?",
-          _firebaseKey: "",
-          _firebaseLocation: "",
-          // chartData: undefined,
+          question: "Will Donald Trump win the 2016 Republican nomination?",
           init: function(){
             var self = this;
             this.questionChanged();
@@ -46,8 +39,6 @@
             });
             this._setupDimensions();
             this._setupElements();
-            
-
           },
           _setupElements: function(){
             var self = this;
@@ -81,9 +72,7 @@
                 .attr("class", "data0")
                 .style("stroke", this.color1)
                 .style("fill", this.color1);
-                // .style("stroke", self.chartData[0].color);
-                // .attr("filter", "url(#dropshadow)");
-            
+                
             // Data labels
             self.topLabel = svg.append("text")
               .attr('class','percent data0 label no-stroke')
@@ -91,8 +80,7 @@
               .attr("text-anchor", "middle")
               .attr("transform", "translate(" +(self.width / 2 ) + "," + self.dims.labelSize/2 + ")")
               .style("fill", this.color1)
-              // .style("stroke", this.color1)
-              .text('aaldkj');
+              .style("opacity", 0);         
 
             self.bottomLabel = svg.append("text")
               .attr('class','percent fill-foreground2 label no-stroke')
@@ -100,9 +88,7 @@
               .attr("text-anchor", "middle")
               .attr("transform", "translate(" +(self.width / 2 ) + "," + (self.dims.donutSize + self.dims.labelSize + self.dims.labelSize/2) + ")")
               .style("fill", this.color2)
-              // .style("stroke", this.color2)
-              .text('bottom label');                            
-
+              .style("opacity", 0);
           },
           _setupDimensions: function(){
             var self = this;
@@ -118,51 +104,53 @@
             self.dims.donutSize = Math.min(self.width, self.height, (self.height - 2 * self.dims.labelSize));
             self.dims.outerRadius = (self.dims.donutSize) * 0.49 - (self.dims.padding*2);
             self.dims.innerRadius = (self.dims.donutSize) * 0.32;
-            
-
 
           },
           animate: function(){
             var self = this;
-            if (!self.pollData || !self.pollData.data){
-              self.setupChartdata();
+            if (!self.pollData || !self.pollData.data || !self.pollData.data[0]._percent){
+              // Calculate percentages from data
+              self.updateChartdata();
+            } else {
+              // Display labels
+              self.topLabel
+                .text(self.pollData.data[0].text + ' ' + self.pollData.data[0]._percent + '%')
+                .transition().duration(500)
+                .style('opacity', 1);   
+
+              self.bottomLabel
+                .text(self.pollData.data[1].text + ' ' + self.pollData.data[1]._percent + '%')
+                .transition().duration(500)
+                .style('opacity', 1);                 
+
+              // Designate the final progress level
+              var progress = self.pollData.data[0]._percent;
+
+              if(self._prevProgress == progress) {  
+                self._prevProgress = 0;
+              }
+
+              var total = 100;
+              var i = d3.interpolate(self._prevProgress/total, progress/total);
+
+              // Animate the foreground to reach the final progress
+              self.foreground.transition().duration(500).tween("progress", function() {
+                return function(t) {
+                  var currentProgress = i(t);
+                  self.foreground.attr("d", self.arc.endAngle(Math.PI*2 * currentProgress));
+                };
+              });
+
+              self._prevProgress = progress; 
             }
-            if (self.pollData && self.pollData.data){
-            self.animationDelay = 500;
 
-            self.topLabel
-              .text(self.pollData.data[0].text + ' ' + self.pollData.data[0]._percent + '%');   
-
-            self.bottomLabel
-              .text(self.pollData.data[1].text + ' ' + self.pollData.data[1]._percent + '%');                           
-
-            var progress = self.pollData.data[0]._percent;
-            // console.log(progress);
-
-            if(self._prevProgress == progress) {  
-              self._prevProgress = 0;
-            }
-// console.log(self._prevProgress);
-            var total = 100;
-            var i = d3.interpolate(self._prevProgress/total, progress/total);//d3.event.loaded / total);
-
-            self.foreground.transition().delay(self.animationDelay/2).duration(self.animationDelay).tween("progress", function() {
-              return function(t) {
-                var progress1 = i(t);
-                // console.log(progress1);
-                self.foreground.attr("d", self.arc.endAngle(Math.PI*2 * progress1));
-                
-              };
-            }).each("end",function() {
-              self.fire('th-animationend',{ element: self});  // is self too much to expose?
-
-            });
-
-            self._prevProgress = progress; 
-            }
           },
           reset: function(){
-
+            var self = this;
+            self.foreground.attr("d", self.arc.endAngle(0));
+            self.bottomLabel.style('opacity', 0);
+            self.topLabel.style('opacity', 0);
+            self._prevProgress = 0;
           },
           
           // PRIVATE METHODS
@@ -179,30 +167,23 @@
             return hash;
           },
 
-
           questionChanged: function(){
-            this.pairingKey = this._createUniqueKey(this.question);
+            this._pairingKey = this._createUniqueKey(this.question);
           },
           dataChanged: function(){
-            console.log("data changed in donut");
             if (this.pollData && this.pollData.data && this.pollData.data.length){
-                this.updateChartdata();
-                this.animate();
+              this.updateChartdata();
+              this.animate();
             } 
           },
           updateChartdata: function(){
             var self = this;
-
-            console.log('setup chart data');
-            if (this.pollData){
-            
+            if (this.pollData){            
               this.pollData.data.forEach(function(obj, i){
                 obj._percent = parseInt((obj._votes/self.pollData.total)*100);
               })
               
             }
-
-            console.log(self.pollData);
           }
         });
 
