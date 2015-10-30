@@ -63,6 +63,12 @@
         -ms-transition: background 0.7s linear;
         -o-transition: background 0.7s linear;
         transition: background 0.7s linear;
+        display: table;
+      }
+
+      th-text {
+        vertical-align: middle; 
+        display: table-cell; 
       }
 
     </style>
@@ -130,6 +136,7 @@
             if (!this.pollData || !this.pollData.data || (!this.pollData.data[this._currentSelection] && this.pollData.data[this._currentSelection] !== 0)){
               this.setupData();
             }
+      
             this.recordSelection(this._currentSelection, this._previousSelection);
             this.deselectChoices();
             selection.style.background = this.fillColor; 
