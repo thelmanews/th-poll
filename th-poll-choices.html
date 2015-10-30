@@ -29,7 +29,7 @@
         overflow:hidden;        
         box-sizing: border-box;
       }
-      
+
       #container {
         -webkit-transition: opacity 0.4s ease;  
         -moz-transition:    opacity 0.4s ease;
@@ -70,7 +70,7 @@
       <template repeat="{{item, i in items}}">
       
         <div class="item" style="max-height:{{itemHeight}}; width: {{itemWidth}}; height:{{itemHeight}}; padding: {{itemPadding}}px;">
-          <div class="innerItem" on-click="{{selectChoice}}" data-index="{{i}}" data-text="{{item.text}}" style="border: 2px solid {{textColor}};"><th-text color="{{textColor}}" align="center">{{item.text}}</th-text></div>
+          <div class="innerItem" on-click="{{selectChoice}}" data-index="{{i}}" data-text="{{item.label}}" style="border: 2px solid {{textColor}};"><th-text color="{{textColor}}" align="center">{{item.label}}</th-text></div>
         </div>
       </template>
       </div>
@@ -81,7 +81,7 @@
           // pairingKey: "testing",
           question: "Will Donald Trump win the 2016 Republican nomination?",
           items: [
-            {"text": "No"}, {"text": "Yes"}
+            {"label": "No"}, {"label": "Yes"}
           ],
           itemsPerRow: 2,
           itemPadding: 0,

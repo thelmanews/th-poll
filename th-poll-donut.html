@@ -1,5 +1,4 @@
 <link rel="import" href="../polymer/polymer.html">
-<link rel="import" href="../th-donut-chart/th-donut-chart.html">
 <link rel="import" href="../th-d3-chart/th-d3-chart.html">
 <link rel="import" href="th-poll-pair.html">
 
@@ -114,12 +113,12 @@
             } else {
               // Display labels
               self.topLabel
-                .text(self.pollData.data[0].text + ' ' + self.pollData.data[0]._percent + '%')
+                .text(self.pollData.data[0].label + ' ' + self.pollData.data[0]._percent + '%')
                 .transition().duration(500)
                 .style('opacity', 1);   
 
               self.bottomLabel
-                .text(self.pollData.data[1].text + ' ' + self.pollData.data[1]._percent + '%')
+                .text(self.pollData.data[1].label + ' ' + self.pollData.data[1]._percent + '%')
                 .transition().duration(500)
                 .style('opacity', 1);                 
 
