@@ -107,7 +107,7 @@
           },
           animate: function(){
             var self = this;
-            if (!self.pollData || !self.pollData.data || !self.pollData.data[0]._percent){
+            if (!self.pollData || !self.pollData.data || !self.pollData.data[0]._percent && self.pollData.data[0]._percent !== 0){
               // Calculate percentages from data
               self.updateChartdata();
             } else {
